@@ -2,6 +2,24 @@ from PIL import Image
 
 import os
 import math
+import sys
+import argparse
+
+# Instantiate the parser
+parser = argparse.ArgumentParser(description='Optional app description')
+
+# Optional argument
+parser.add_argument('--opt-rows', type=int,
+                    help='Num of rows it should have.')
+parser.add_argument('--no-tight', dest='tight', action='store_false', help='Don\'t compact the images to smallest space.')
+
+
+args = parser.parse_args()
+
+arg_num_of_rows = args.opt_rows
+tight_fit = args.tight
+
+
 
 files = [f for f in os.listdir('./input') if os.path.isfile(os.path.join('./input', f))]
 
@@ -20,10 +38,16 @@ for f in files:
 
 all_images.sort(key=lambda file: file.height, reverse=True)
 
-columns = math.ceil(math.sqrt(len(all_images)))
-rows = math.ceil(len(all_images) / columns)
+rows = math.ceil(math.sqrt(len(all_images)))
+if arg_num_of_rows and arg_num_of_rows >= 1:
+    rows = arg_num_of_rows
 
-print("Grid: " + str(columns) + " * " + str(rows))
+columns = math.ceil(len(all_images) / rows)
+
+
+print("Tight fit:", tight_fit)
+print("Grid:",columns,"*",rows)
+print("Rendering...")
 
 index = 0
 
@@ -36,17 +60,23 @@ new_im = Image.new('RGB', (first_img_width * columns, first_img_height * rows))
 
 nexty = 0
 
-for y in range(columns):
+col_current_y = [0] * columns
+
+for y in range(rows):
     biggest_height_row = 0
     for x in range(columns):
         if index >= len(all_images):
             break
-        im = all_images[index]
-        #im.thumbnail((300,300))
-        new_im.paste(im, (x * first_img_width, nexty))
-        index += 1
+        im = all_images[index]        
+
+        if tight_fit:
+            new_im.paste(im, (x * first_img_width, col_current_y[x]))
+            col_current_y[x] += im.height
+        else:
+            new_im.paste(im, (x * first_img_width, nexty))
 
         biggest_height_row = max(biggest_height_row, im.height)
+        index += 1
 
     nexty += biggest_height_row
 
@@ -69,4 +99,6 @@ if not os.path.exists(final_directory):
 
 
 new_im.save("output/grid.png")
+
+print("Done")
 
