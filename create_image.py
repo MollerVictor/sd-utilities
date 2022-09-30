@@ -25,6 +25,7 @@ files = [f for f in os.listdir('./input') if os.path.isfile(os.path.join('./inpu
 
 
 biggest_height = 0
+biggest_width = 0
 
 
 all_images = []
@@ -33,6 +34,7 @@ for f in files:
     img = Image.open(os.path.join('./input', f))
 
     biggest_height = max(biggest_height, img.height)
+    biggest_width = max(biggest_width, img.width)
 
     all_images.append(img) 
 
@@ -68,14 +70,16 @@ for y in range(rows):
         if index >= len(all_images):
             break
         im = all_images[index]        
-
+        
         if tight_fit:
-            new_im.paste(im, (x * first_img_width, col_current_y[x]))
+            new_im.paste(im, (x * biggest_width, col_current_y[x]))
+
             col_current_y[x] += im.height
         else:
             new_im.paste(im, (x * first_img_width, nexty))
 
         biggest_height_row = max(biggest_height_row, im.height)
+
         index += 1
 
     nexty += biggest_height_row
